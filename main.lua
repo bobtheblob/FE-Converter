@@ -218,6 +218,8 @@ local mouse = {
 	TargetSurface = Enum.NormalId.Back;
 	ViewSizeX = 0;
 	ViewSizeY = 0;
+	KeyDown = newfakesignal();
+	KeyUp = newfakesignal();
 	Button1Down = newfakesignal();
 	Button2Down = newfakesignal();
 	Button1Up = newfakesignal();
@@ -409,6 +411,10 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 						newargs.Name = nil
 						mouse[args[1].Name]:Fire(unpack(newargs))
 					end
+				else
+					local newargs = args[1]
+					newargs.Name = nil
+					mouse[args[1].Name]:Fire(unpack(newargs))
 				end
 			end
 		end
