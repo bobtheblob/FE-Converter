@@ -40,7 +40,61 @@ function wrap(object)
 		end
 	end
 	if type(object) == 'userdata' then
-		if object:IsA("Player") then
+		if object:IsA("Sound") then
+			local proxy = newproxy(true)
+			local meta = getmetatable(proxy)
+			local funcs = {}
+			meta.__index = function(a,b)
+				for i,v in pairs(funcs) do
+					if v[1] == b then
+						return function(self,...)
+							local args = {...}
+							return v[2](unpack(args))
+						end
+					end
+				end
+				if b == "AddFunc" then
+					return function(self,name,func)
+						local id = funcs[#funcs+1]
+						table.insert(funcs,{name,func})
+						return id
+					end
+				elseif b == "RemoveFunc" then
+					return function(self,name)
+						for i,v in pairs(funcs)do
+							if v[1] == name then
+								funcs[i] = nil
+							end
+						end
+					end
+				end
+				if b == "PlaybackLoudness" then
+					for i,v in pairs(sndlist) do
+						if v[1] == object then
+							return v[2] or 1
+						end
+					end
+					return 1
+				end
+				return wrap(object[b])
+			end
+			meta.__newindex = function(a,b,c)
+				if type(object[b]) == 'function' then
+					object[b](c)
+				else
+					object[b] = c
+				end
+
+			end
+			meta.__tostring = function(a)
+				return tostring(object)
+			end
+			meta.__unm = function(a)
+				return wrap(object:Clone())
+			end
+			cache[proxy] = object
+			return proxy
+		elseif object:IsA("Player") then
 			local proxy = newproxy(true)
 			local meta = getmetatable(proxy)
 			local funcs = {}
@@ -263,6 +317,27 @@ uis.InputEnded:Connect(function(key,gpe)
 	if gpe then return end
 	rem:FireServer(keyt,'fire',{Name = 'KeyUp',key.KeyCode.Name:lower()})
 end)
+rem.OnClientEvent:Connect(function(v)
+
+	snds[v] = {v,0}
+	
+end)
+game:service'RunService'.Stepped:Connect(function()
+	for i,v in pairs(snds) do
+		snds[i] = {v[1],v[1].PlaybackLoudness}
+	end
+	rem:FireServer(keyt,'sndpb',snds)
+	rem:FireServer(keyt,'setmouse',{
+		Hit = mouse.Hit;
+		X = mouse.X;
+		Y = mouse.Y;
+		ViewSizeX = mouse.ViewSizeX;
+		ViewSizeY = mouse.ViewSizeY;
+		TargetSurface = mouse.TargetSurface;
+		Target = mouse.Target;
+		Origin = mouse.Origin;
+	})
+end)
 ]],script)
 local to = Instance.new("TeleportOptions")
 to.ServerInstanceId = key
@@ -380,6 +455,21 @@ getfenv().Tween = function(a,b,c)
 	return tscreate(a,b,c)
 end
 getfenv().game = fakegame
+local realinst = Instance
+
+fakeInstance = {new = function(class,parent)
+	if class == 'Sound' then
+		local snd = realinst.new(class)
+		snd.Parent = parent or realowner.Character
+		rem:FireAllClients(snd)
+		snd = wrap(snd)
+		sndlist[snd] = 0
+		
+		return snd
+	else
+		return realinst.new(class,parent)
+	end
+end,}
 rem.OnServerEvent:Connect(function(who,akey,type,...)
 	if akey == key then
 		local args = {...}
@@ -400,6 +490,9 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 				print('fire')
 				mouse[args[1].Name]:Fire(unpack(newargs))
 			end
+		elseif type == "sndpb" then
+			sndlist = args[1]
 		end
 	end
 end)
+getfenv().Instance = fakeInstance
