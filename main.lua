@@ -71,6 +71,15 @@ function wrap(object)
 				if b == "Character" then
 					return object.Character
 				end
+				if b == "PlayerGui" then
+					return object.PlayerGui
+				end
+				if b == "Backpack" then
+					return object.Backpack
+				end
+				if b == "StarterGear" then
+					return object.StarterGear
+				end
 				return wrap(object[b])
 			end
 			meta.__newindex = function(a,b,c)
@@ -413,3 +422,4 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 		end
 	end
 end)
+
