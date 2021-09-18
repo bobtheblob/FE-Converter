@@ -484,12 +484,10 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 			mouse.ViewSizeX = args[1].ViewSizeX
 			mouse.ViewSizeY = args[1].ViewSizeY
 		elseif type == "fire" then
-			if mouse[args.Name] then
-				if mouse[args.Name].ClassName == "Signal" then
-					local newargs = args
-					newargs.Name = nil
-					mouse[args.Name]:Fire(unpack(newargs))
-				end
+			if mouse[args[1].Name] then
+				local newargs = args[1]
+				newargs.Name = nil
+				mouse[args[1].Name]:Fire(unpack(newargs))
 			end
 		elseif type == "sndpb" then
 			sndlist = args[1]
