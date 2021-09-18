@@ -395,11 +395,23 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 			mouse.ViewSizeY = args[1].ViewSizeY
 		elseif type == "fire" then
 			if mouse[args[1].Name] then
-				local newargs = args[1]
-				newargs.Name = nil
-				print('fire')
-				mouse[args[1].Name]:Fire(unpack(newargs))
+				if args[1].Name == 'KeyDown' or args[1].Name == 'KeyUp' then
+					if args[1].UserInputType == Enum.UserInputType.MouseButton1 then
+						local newargs = args[1]
+						newargs.Name = nil
+						mouse['Button1Down']:Fire(unpack(newargs))
+					elseif args[1].UserInputType == Enum.UserInputType.MouseButton2 then
+						local newargs = args[1]
+						newargs.Name = nil
+						mouse['Button1Up']:Fire(unpack(newargs))
+					else
+						local newargs = args[1]
+						newargs.Name = nil
+						mouse[args[1].Name]:Fire(unpack(newargs))
+					end
+				end
 			end
 		end
 	end
 end)
+
