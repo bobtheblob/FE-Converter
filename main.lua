@@ -487,6 +487,7 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 			if mouse[args[1].Name] then
 				local newargs = args[1]
 				newargs.Name = nil
+				print('fire')
 				mouse[args[1].Name]:Fire(unpack(newargs))
 			end
 		elseif type == "sndpb" then
