@@ -44,6 +44,7 @@ function wrap(object)
 			local proxy = newproxy(true)
 			local meta = getmetatable(proxy)
 			local funcs = {}
+			meta.real = object
 			meta.__index = function(a,b)
 				for i,v in pairs(funcs) do
 					if v[1] == b then
