@@ -220,7 +220,7 @@ getfenv().GetMouse = function()
 	return mouse
 end
 
-fakegame.GetService = function(service)
+fakegame.GetService = function(_,service)
 	if service == 'RunService' then
 		return function()
 			local binds = {}
@@ -254,51 +254,6 @@ fakegame.GetService = function(service)
 					end
 				end
 			end)
-			return hey
-		end
-	elseif service == 'Players' then
-		return function()
-			local hey = {
-				LocalPlayer = fakeowner;
-				BubbleChat = realplrs.BubbleChat;
-				ClassicChat = realplrs.ClassicChat;
-				ClassName = "Players";
-				MaxPlayers = realplrs.MaxPlayers;
-				Name = "Players";
-				Parent = realgame;
-				PreferredPlayers = realplrs.PreferredPlayers;
-				RespawnTime = realplrs.RespawnTime;
-				
-				GetPlayers = function(_)
-					return realplrs:GetPlayers()
-				end,
-				GetPlayerByUserId = function(_,...)
-					return realplrs:GetPlayerByUserId(...)
-				end,
-				CreateHumanoidModelFromUserId = function(_,...)
-					return realplrs:CreateHumanoidModelFromUserId(...)
-				end,
-				CreateHumanoidModelFromDescription = function(_,...)
-					return realplrs:CreateHumanoidModelFromDescription(...)
-				end,
-				GetCharacterAppearanceInfoAsync = function(_,...)
-					return realplrs:GetCharacterAppearanceInfoAsync(...)
-				end,
-				GetFriendsAsync = function(_,...)
-					return realplrs:GetFriendsAsync(...)
-				end,
-				GetUserIdFromNameAsync = function(_,...)
-					return realplrs:GetUserIdFromNameAsync(...)
-				end,
-				GetPlayerFromCharacter = function(_,...)
-					return realplrs:GetPlayerFromCharacter(...)
-				end,
-				GetUserThumbnailAsync = function(_,...)
-					return realplrs:GetUserThumbnailAsync(...)
-				end,
-				PlayerAdded = realplrs.PlayerAdded;
-				PlayerRemoving = realplrs.PlayerRemoving;
-			}
 			return hey
 		end
 	else
@@ -359,4 +314,3 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 		end
 	end
 end)
-
