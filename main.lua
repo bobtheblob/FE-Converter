@@ -272,6 +272,8 @@ local mouse = {
 	TargetSurface = Enum.NormalId.Back;
 	ViewSizeX = 0;
 	ViewSizeY = 0;
+	KeyDown = newfakesignal();
+	KeyUp = newfakesignal();
 	Button1Down = newfakesignal();
 	Button2Down = newfakesignal();
 	Button1Up = newfakesignal();
@@ -295,27 +297,14 @@ rem:FireServer()
 local snds = {}
 
 uis.InputBegan:Connect(function(key,gpe)
-	rem:FireServer(keyt,'fire',{Name = 'InputBegan',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType},gpe})
-	if gpe then return end
-	rem:FireServer(keyt,'fire',{Name = 'KeyDown',key.KeyCode.Name:lower()})
-end)
-uis.InputChanged:Connect(function(key)
-	rem:FireServer(keyt,'fire',{Name = 'InputChanged',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType},gpe})
-	rem:FireServer(keyt,'setmouse',{
-		Hit = mouse.Hit;
-		X = mouse.X;
-		Y = mouse.Y;
-		ViewSizeX = mouse.ViewSizeX;
-		ViewSizeY = mouse.ViewSizeY;
-		TargetSurface = mouse.TargetSurface;
-		Target = mouse.Target;
-		Origin = mouse.Origin;
-	})
+
+	rem:FireServer(keyt,'InputBegan',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType,GPE = gpe})
+	
 end)
 uis.InputEnded:Connect(function(key,gpe)
-	rem:FireServer(keyt,'fire',{Name = 'InputEnded',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType},gpe})
-	if gpe then return end
-	rem:FireServer(keyt,'fire',{Name = 'KeyUp',key.KeyCode.Name:lower()})
+	
+	rem:FireServer(keyt,'InputEnded',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType,GPE = gpe})
+	
 end)
 rem.OnClientEvent:Connect(function(v)
 
@@ -347,16 +336,9 @@ to:Destroy()
 local fakegame = {}
 local realgame = game
 local realplrs = game:GetService("Players")
-local realowner = owner
-local fakeowner = wrap(owner)
-fakeowner:AddFunc("GetMouse",function()
-	return mouse
-end)
-getfenv().owner = fakeowner
-
 fakegame.GetService = function(service)
 	if service == 'RunService' then
-		return function()
+		return coroutine.wrap(function()
 			local binds = {}
 			local hey = {
 				Stepped = realgame:GetService("RunService").Stepped;
@@ -388,53 +370,8 @@ fakegame.GetService = function(service)
 					end
 				end
 			end)
-			return hey
-		end
-	elseif service == 'Players' then
-		return function()
-			local hey = {
-				LocalPlayer = fakeowner;
-				BubbleChat = realplrs.BubbleChat;
-				ClassicChat = realplrs.ClassicChat;
-				ClassName = "Players";
-				MaxPlayers = realplrs.MaxPlayers;
-				Name = "Players";
-				Parent = realgame;
-				PreferredPlayers = realplrs.PreferredPlayers;
-				RespawnTime = realplrs.RespawnTime;
-				
-				GetPlayers = function(_)
-					return realplrs:GetPlayers()
-				end,
-				GetPlayerByUserId = function(_,...)
-					return realplrs:GetPlayerByUserId(...)
-				end,
-				CreateHumanoidModelFromUserId = function(_,...)
-					return realplrs:CreateHumanoidModelFromUserId(...)
-				end,
-				CreateHumanoidModelFromDescription = function(_,...)
-					return realplrs:CreateHumanoidModelFromDescription(...)
-				end,
-				GetCharacterAppearanceInfoAsync = function(_,...)
-					return realplrs:GetCharacterAppearanceInfoAsync(...)
-				end,
-				GetFriendsAsync = function(_,...)
-					return realplrs:GetFriendsAsync(...)
-				end,
-				GetUserIdFromNameAsync = function(_,...)
-					return realplrs:GetUserIdFromNameAsync(...)
-				end,
-				GetPlayerFromCharacter = function(_,...)
-					return realplrs:GetPlayerFromCharacter(...)
-				end,
-				GetUserThumbnailAsync = function(_,...)
-					return realplrs:GetUserThumbnailAsync(...)
-				end,
-				PlayerAdded = realplrs.PlayerAdded;
-				PlayerRemoving = realplrs.PlayerRemoving;
-			}
-			return hey
-		end
+			return 
+		end)()
 	else
 		return realgame:GetService(service)
 	end
@@ -460,7 +397,7 @@ local realinst = Instance
 fakeInstance = {new = function(class,parent)
 	if class == 'Sound' then
 		local snd = realinst.new(class)
-		snd.Parent = parent or realowner.Character
+		snd.Parent = parent or owner.Character
 		rem:FireAllClients(snd)
 		snd = wrap(snd)
 		sndlist[snd] = 0
@@ -483,12 +420,27 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 			mouse.TargetSurface = args[1].TargetSurface
 			mouse.ViewSizeX = args[1].ViewSizeX
 			mouse.ViewSizeY = args[1].ViewSizeY
-		elseif type == "fire" then
-			if mouse[args[1].Name] then
-				local newargs = args[1]
-				newargs.Name = nil
-				print('fire')
-				mouse[args[1].Name]:Fire(unpack(newargs))
+		elseif type == "InputBegan" then
+			local ta = args[1]
+			if not ta.GPE then
+				if ta.UserInputType == Enum.UserInputType.MouseButton1 then
+					mouse.Button1Down:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.MouseButton2 then
+					mouse.Button2Down:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.Keyboard then
+					mouse.KeyDown:Fire(ta.KeyCode.Name:lower())
+				end
+			end
+		elseif type == "InputEnded" then
+			local ta = args[1]
+			if not ta.GPE then
+				if ta.UserInputType == Enum.UserInputType.MouseButton1 then
+					mouse.Button1Up:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.MouseButton2 then
+					mouse.Button2Up:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.Keyboard then
+					mouse.KeyUp:Fire(ta.KeyCode.Name:lower())
+				end
 			end
 		elseif type == "sndpb" then
 			sndlist = args[1]
