@@ -240,15 +240,13 @@ local keyt = script:WaitForChild'Instance'.ServerInstanceId
 local mouse = owner:GetMouse()
 local uis = game:GetService("UserInputService")
 rem:FireServer()
-local snds = {}
-
 uis.InputBegan:Connect(function(key,gpe)
-	rem:FireServer(keyt,'fire',{Name = 'InputBegan',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType},gpe})
-	if gpe then return end
-	rem:FireServer(keyt,'fire',{Name = 'KeyDown',key.KeyCode.Name:lower()})
+	rem:FireServer(keyt,'InputBegan',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType,GPE = gpe})
 end)
-uis.InputChanged:Connect(function(key)
-	rem:FireServer(keyt,'fire',{Name = 'InputChanged',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType},gpe})
+uis.InputEnded:Connect(function(key,gpe)
+	rem:FireServer(keyt,'InputEnded',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType,GPE = gpe})
+end)
+game:service'RunService'.Stepped:Connect(function()
 	rem:FireServer(keyt,'setmouse',{
 		Hit = mouse.Hit;
 		X = mouse.X;
@@ -259,11 +257,6 @@ uis.InputChanged:Connect(function(key)
 		Target = mouse.Target;
 		Origin = mouse.Origin;
 	})
-end)
-uis.InputEnded:Connect(function(key,gpe)
-	rem:FireServer(keyt,'fire',{Name = 'InputEnded',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType},gpe})
-	if gpe then return end
-	rem:FireServer(keyt,'fire',{Name = 'KeyUp',key.KeyCode.Name:lower()})
 end)
 ]],script)
 local to = Instance.new("TeleportOptions")
@@ -395,29 +388,28 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 			mouse.TargetSurface = args[1].TargetSurface
 			mouse.ViewSizeX = args[1].ViewSizeX
 			mouse.ViewSizeY = args[1].ViewSizeY
-		elseif type == "fire" then
-			if mouse[args[1].Name] then
-				if args[1].Name == 'KeyDown' or args[1].Name == 'KeyUp' then
-					if args[1].UserInputType == Enum.UserInputType.MouseButton1 then
-						local newargs = args[1]
-						newargs.Name = nil
-						mouse['Button1Down']:Fire(unpack(newargs))
-					elseif args[1].UserInputType == Enum.UserInputType.MouseButton2 then
-						local newargs = args[1]
-						newargs.Name = nil
-						mouse['Button1Up']:Fire(unpack(newargs))
-					else
-						local newargs = args[1]
-						newargs.Name = nil
-						mouse[args[1].Name]:Fire(unpack(newargs))
-					end
-				else
-					local newargs = args[1]
-					newargs.Name = nil
-					mouse[args[1].Name]:Fire(unpack(newargs))
+		elseif type == "InputBegan" then
+			local ta = args[1]
+			if not ta.GPE then
+				if ta.UserInputType == Enum.UserInputType.MouseButton1 then
+					mouse.Button1Down:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.MouseButton2 then
+					mouse.Button2Down:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.Keyboard then
+					mouse.KeyDown:Fire(ta.KeyCode.Name:lower())
+				end
+			end
+		elseif type == "InputEnded" then
+			local ta = args[1]
+			if not ta.GPE then
+				if ta.UserInputType == Enum.UserInputType.MouseButton1 then
+					mouse.Button1Up:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.MouseButton2 then
+					mouse.Button2Up:Fire()
+				elseif ta.UserInputType == Enum.UserInputType.Keyboard then
+					mouse.KeyUp:Fire(ta.KeyCode.Name:lower())
 				end
 			end
 		end
 	end
 end)
-
