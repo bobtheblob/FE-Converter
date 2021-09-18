@@ -40,112 +40,51 @@ function wrap(object)
 		end
 	end
 	if type(object) == 'userdata' then
-		if object:IsA("Player") then
-			local proxy = newproxy(true)
-			local meta = getmetatable(proxy)
-			local funcs = {}
-			meta.real = object
-			meta.__index = function(a,b)
-				for i,v in pairs(funcs) do
-					if v[1] == b then
-						return function(self,...)
-							local args = {...}
-							return v[2](unpack(args))
+		local proxy = newproxy(true)
+		local meta = getmetatable(proxy)
+		local funcs = {}
+		meta.__index = function(a,b)
+			for i,v in pairs(funcs) do
+				if v[1] == b then
+					return function(self,...)
+						local args = {...}
+						return v[2](unpack(args))
+					end
+				end
+			end
+			if b == "AddFunc" then
+				return function(self,name,func)
+					local id = funcs[#funcs+1]
+					table.insert(funcs,{name,func})
+					return id
+				end
+			elseif b == "RemoveFunc" then
+				return function(self,name)
+					for i,v in pairs(funcs)do
+						if v[1] == name then
+							funcs[i] = nil
 						end
 					end
 				end
-				if b == "AddFunc" then
-					return function(self,name,func)
-						local id = funcs[#funcs+1]
-						table.insert(funcs,{name,func})
-						return id
-					end
-				elseif b == "RemoveFunc" then
-					return function(self,name)
-						for i,v in pairs(funcs)do
-							if v[1] == name then
-								funcs[i] = nil
-							end
-						end
-					end
-				end
-				if b == "Character" then
-					return object.Character
-				end
-				if b == "PlayerGui" then
-					return object.PlayerGui
-				end
-				if b == "Backpack" then
-					return object.Backpack
-				end
-				if b == "StarterGear" then
-					return object.StarterGear
-				end
-				return wrap(object[b])
 			end
-			meta.__newindex = function(a,b,c)
-				if type(object[b]) == 'function' then
-					object[b](c)
-				else
-					object[b] = c
-				end
-
-			end
-			meta.__tostring = function(a)
-				return tostring(object)
-			end
-			meta.__unm = function(a)
-				return wrap(object:Clone())
-			end
-			cache[proxy] = object
-			return proxy
-		else
-			local proxy = newproxy(true)
-			local meta = getmetatable(proxy)
-			local funcs = {}
-			meta.__index = function(a,b)
-				for i,v in pairs(funcs) do
-					if v[1] == b then
-						return function(self,...)
-							local args = {...}
-							return v[2](unpack(args))
-						end
-					end
-				end
-				if b == "AddFunc" then
-					return function(self,name,func)
-						local id = funcs[#funcs+1]
-						table.insert(funcs,{name,func})
-						return id
-					end
-				elseif b == "RemoveFunc" then
-					return function(self,name)
-						for i,v in pairs(funcs)do
-							if v[1] == name then
-								funcs[i] = nil
-							end
-						end
-					end
-				end
-				return wrap(object[b])
-			end
-			meta.__newindex = function(a,b,c)
-				if type(object[b]) == 'function' then
-					object[b](c)
-				else
-					object[b] = c
-				end
-
-			end
-			meta.__tostring = function(a)
-				return tostring(object)
-			end
-			meta.__unm = function(a)
-				return wrap(object:Clone())
-			end
-			cache[proxy] = object
-			return proxy
+			return wrap(object[b])
 		end
+		meta.__newindex = function(a,b,c)
+			if type(object[b]) == 'function' then
+				object[b](c)
+			else
+				object[b] = c
+			end
+
+		end
+		meta.__tostring = function(a)
+			return tostring(object)
+		end
+		meta.__unm = function(a)
+			return wrap(object:Clone())
+		end
+		cache[proxy] = object
+		return proxy
 	elseif type(object) == "table" then
 		local fake = {}
 		for k,v in next,object do
@@ -277,12 +216,9 @@ to:Destroy()
 local fakegame = {}
 local realgame = game
 local realplrs = game:GetService("Players")
-local realowner = owner
-local fakeowner = wrap(owner)
-fakeowner:AddFunc("GetMouse",function()
+getfenv().GetMouse = function()
 	return mouse
-end)
-getfenv().owner = fakeowner
+end
 
 fakegame.GetService = function(service)
 	if service == 'RunService' then
