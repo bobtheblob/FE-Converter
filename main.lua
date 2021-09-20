@@ -282,6 +282,7 @@ local mouse = {
 	Idle = newfakesignal();
 	WheelBackward = newfakesignal();
 	WheelForward = newfakesignal();
+	CameraCFrame = CFrame.new();
 }
 local rem = Instance.new("RemoteEvent")
 rem.Parent = script
@@ -325,6 +326,7 @@ game:service'RunService'.Stepped:Connect(function()
 		TargetSurface = mouse.TargetSurface;
 		Target = mouse.Target;
 		Origin = mouse.Origin;
+		CameraCFrame = workspace:FindFirstChildOfClass'Camera'.CFrame;
 	})
 end)
 ]],script)
@@ -420,6 +422,7 @@ rem.OnServerEvent:Connect(function(who,akey,type,...)
 			mouse.TargetSurface = args[1].TargetSurface
 			mouse.ViewSizeX = args[1].ViewSizeX
 			mouse.ViewSizeY = args[1].ViewSizeY
+			mouse.CameraCFrame = args[1].CameraCFrame
 		elseif type == "InputBegan" then
 			local ta = args[1]
 			if not ta.GPE then
