@@ -221,62 +221,12 @@ getfenv().GetMouse = function()
 	return mouse
 end
 
-fakegame.GetService = function(_,service)
-	if service == 'RunService' then
-		return function()
-			local binds = {}
-			local hey = {
-				Stepped = realgame:GetService("RunService").Stepped;
-				Heartbeat = realgame:GetService("RunService").Heartbeat;
-				RenderStepped = realgame:GetService("RunService").Stepped;
-				ClassName = "RunService";
-				BindToRenderStep = function(name,priority,func)
-					priority = tonumber(priority)
-					if priority == nil then return end
-					if binds[priority] == nil then
-						binds[priority] = {}
-					end
-					binds[priority][name] = func
-				end,
-				UnbindFromRenderStep = function(name)
-					for i,v in pairs(binds) do
-						for i_,v_ in pairs(v) do
-							if i_ == name then
-								table.remove(binds,i_)
-							end
-						end
-					end
-				end,
-			}
-			hey.RenderStepped:Connect(function()
-				for i,v in spairs(binds) do
-					for i_,v_ in pairs(v) do
-						v_()
-					end
-				end
-			end)
-			return hey
-		end
-	else
-		return realgame:GetService(service)
-	end
-end
-fakegame.getService = fakegame.GetService
-fakegame.FindService = fakegame.GetService
-fakegame.findService = fakegame.GetService
-fakegame.BindToClose = realgame.BindToClose
-fakegame.bindToClose = realgame.BindToClose
-fakegame.WaitForChild = realgame.WaitForChild
-fakegame.FindFirstChild = realgame.FindFirstChild
-fakegame.waitForChild = realgame.WaitForChild
-fakegame.findFirstChild = realgame.FindFirstChild
 getfenv().typeof = wrap(typeof)
 getfenv().wrap = wrap
 getfenv().unwrap = unwrap
 getfenv().Tween = function(a,b,c)
 	return tscreate(a,b,c)
 end
-getfenv().game = fakegame
 rem.OnServerEvent:Connect(function(who,akey,type,...)
 	if akey == key then
 		local args = {...}
