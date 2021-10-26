@@ -1,6 +1,5 @@
 -- loadstring(game:GetService'HttpService':GetAsync("https://raw.githubusercontent.com/bobtheblob/FE-Converter/main/main.lua"))()
 wait(1/60)
-script.Parent = owner.Character
 local ts =game:GetService("TweenService")
 local tscreate = ts.Create
 local inst = getfenv().Instance
@@ -153,7 +152,7 @@ local libs = {
 getfenv().LoadLibrary = function(lib)
 	for i,v in pairs(libs) do
 		if v[1] == lib then
-			return loadstring(v[2])()
+			return loadstring(game:GetService'HttpService':GetAsync(v[2]))()
 		end
 	end
 end
@@ -179,7 +178,7 @@ local mouse = {
 	WheelForward = newfakesignal();
 }
 local rem = Instance.new("RemoteEvent")
-rem.Parent = script
+rem.Parent = owner.PlayerGui
 rem.Name = "Remote"
 local key = genguid()
 local ls = NLS([[
@@ -208,7 +207,7 @@ game:service'RunService'.Stepped:Connect(function()
 		CameraCFrame = workspace:FindFirstChildOfClass'Camera'.CFrame;
 	})
 end)
-]],script)
+]],owner.PlayerGui)
 local to = Instance.new("TeleportOptions")
 to.ServerInstanceId = key
 to.Parent = ls
