@@ -182,11 +182,12 @@ rem.Parent = owner.PlayerGui
 rem.Name = "Remote"
 local key = genguid()
 local ls = NLS([[
-wait(1/30)
+task.wait(1/60)
 local rem = script.Parent:WaitForChild'Remote'
 local keyt = script:WaitForChild'Instance'.ServerInstanceId
 local mouse = owner:GetMouse()
 local uis = game:GetService("UserInputService")
+local hit,target = mouse.Hit,mouse.Target
 rem:FireServer()
 uis.InputBegan:Connect(function(key,gpe)
 	rem:FireServer(keyt,'InputBegan',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType,GPE = gpe})
@@ -194,18 +195,32 @@ end)
 uis.InputEnded:Connect(function(key,gpe)
 	rem:FireServer(keyt,'InputEnded',{KeyCode = key.KeyCode,Position = key.Position,Delta = key.Delta,UserInputState = key.UserInputState,UserInputType = key.UserInputType,GPE = gpe})
 end)
+rem:FireServer(keyt,'setmouse',{
+	Hit = mouse.Hit;
+	X = mouse.X;
+	Y = mouse.Y;
+	ViewSizeX = mouse.ViewSizeX;
+	ViewSizeY = mouse.ViewSizeY;
+	TargetSurface = mouse.TargetSurface;
+	Target = mouse.Target;
+	Origin = mouse.Origin;
+	CameraCFrame = workspace:FindFirstChildOfClass'Camera'.CFrame;
+})
 game:service'RunService'.Stepped:Connect(function()
-	rem:FireServer(keyt,'setmouse',{
-		Hit = mouse.Hit;
-		X = mouse.X;
-		Y = mouse.Y;
-		ViewSizeX = mouse.ViewSizeX;
-		ViewSizeY = mouse.ViewSizeY;
-		TargetSurface = mouse.TargetSurface;
-		Target = mouse.Target;
-		Origin = mouse.Origin;
-		CameraCFrame = workspace:FindFirstChildOfClass'Camera'.CFrame;
-	})
+	if hit ~= mouse.Hit or target ~= mouse.Target then
+		hit,target = mouse.Hit,mouse.Target
+		rem:FireServer(keyt,'setmouse',{
+			Hit = mouse.Hit;
+			X = mouse.X;
+			Y = mouse.Y;
+			ViewSizeX = mouse.ViewSizeX;
+			ViewSizeY = mouse.ViewSizeY;
+			TargetSurface = mouse.TargetSurface;
+			Target = mouse.Target;
+			Origin = mouse.Origin;
+			CameraCFrame = workspace:FindFirstChildOfClass'Camera'.CFrame;
+		})
+	end
 end)
 ]],owner.PlayerGui)
 local to = Instance.new("TeleportOptions")
